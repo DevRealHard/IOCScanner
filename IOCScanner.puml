@@ -1,0 +1,29 @@
+@startuml
+autoactivate on
+
+IoCScanner -> IoCScanner: main(args)
+    IoCScanner -> IoCScanner: load_rules(str(args.rules_path))
+        IoCScanner --> IoCScanner: rules
+    IoCScanner -> IoCScanner: yara.complie(rules)
+        IoCScanner --> IoCScanner: compiled_rules
+    IoCScanner -> IoCScanner: match_rules(args.img_path, compiled_rules, args.timeout)
+
+        loop for each file
+            create matcherobj
+            IoCScanner -> matcherobj: Matcher(rules, timeout)
+            deactivate
+            matcherobj -> matcherobj: scan(path)
+            matcherobj --> matcherobj
+            destroy matcherobj
+        end
+        matcherobj --> IoCScanner: yield matches
+        IoCScanner --> IoCScanner: matches
+    IoCScanner -> IoCScanner: writetofile(matches, args.tempfile, rules)
+    IoCScanner --> IoCScanner: path
+    create analyzerobj
+    IoCScanner -> analyzerobj: Analyzer(path, top)
+    IoCScanner -> analyzerobj: showresult()
+    destroy analyzerobj
+    deactivate
+deactivate IoCScanner
+@enduml
